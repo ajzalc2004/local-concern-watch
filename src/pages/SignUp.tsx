@@ -4,71 +4,74 @@ import { useAuth } from '../contexts/AuthContext';
 import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../components/ui/card';
-import { Badge } from '../components/ui/badge';
-import { Eye, EyeOff, Shield, Users } from 'lucide-react';
 
-export default function Login() {
+export default function SignUp() {
+  const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
-  
-  const { user, login } = useAuth();
+  const { user, register } = useAuth();
 
-  // Redirect if already logged in
   if (user) {
     return <Navigate to={user.role === 'authority' ? '/authority' : '/dashboard'} replace />;
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setIsLoading(true);
     setError('');
-
+    if (password.length < 6) {
+      setError('Password must be at least 6 characters');
+      return;
+    }
+    if (password !== confirmPassword) {
+      setError('Passwords do not match');
+      return;
+    }
+    setIsLoading(true);
     try {
-      await login(email, password);
-    } catch (err) {
-      setError('Invalid credentials. Please try again.');
+      await register(email, password, name || undefined);
+    } catch (err: any) {
+      setError(err?.message || 'Failed to create account');
     } finally {
       setIsLoading(false);
     }
   };
 
-  
-
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-blue-900 to-indigo-900">
-      {/* Hero Section */}
       <div className="relative overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-r from-blue-600/20 to-purple-600/20"></div>
         <div className="relative z-10 px-4 py-16 sm:px-6 lg:px-8">
           <div className="mx-auto max-w-4xl text-center">
-            <h1 className="text-5xl font-bold tracking-tight text-white sm:text-7xl mb-6">
-              LOCALEYES
-            </h1>
-            <p className="text-2xl font-semibold text-white/95 mb-4">
-              SPOT IT. REPORT IT. FIX IT.
-            </p>
+            <h1 className="text-5xl font-bold tracking-tight text-white sm:text-7xl mb-6">Create your account</h1>
             <p className="text-lg text-white/80 max-w-2xl mx-auto">
-              Empowering communities to report local issues and connect with authorities for swift resolution.
+              Join LocalEyes to report issues and help improve your community.
             </p>
           </div>
         </div>
       </div>
 
-      {/* Login Form */}
       <div className="relative -mt-20 px-4 pb-20 sm:px-6 lg:px-8">
         <div className="mx-auto max-w-md">
           <Card className="shadow-lg border-0 bg-card/95 backdrop-blur-sm">
             <CardHeader className="space-y-1 text-center">
-              <CardTitle className="text-2xl font-bold">Welcome Back</CardTitle>
-              <CardDescription>
-                Sign in to report issues or manage community requests
-              </CardDescription>
+              <CardTitle className="text-2xl font-bold">Sign Up</CardTitle>
+              <CardDescription>Create a new citizen account</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               <form onSubmit={handleSubmit} className="space-y-4">
+                <div className="space-y-2">
+                  <Input
+                    type="text"
+                    placeholder="Full name (optional)"
+                    value={name}
+                    onChange={(e) => setName(e.target.value)}
+                    className="h-12"
+                  />
+                </div>
                 <div className="space-y-2">
                   <Input
                     type="email"
@@ -79,44 +82,38 @@ export default function Login() {
                     className="h-12"
                   />
                 </div>
-                <div className="relative space-y-2">
+                <div className="space-y-2">
                   <Input
                     type={showPassword ? 'text' : 'password'}
-                    placeholder="Password"
+                    placeholder="Password (min 6 characters)"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     required
-                    className="h-12 pr-10"
+                    className="h-12"
                   />
-                  <button
-                    type="button"
-                    onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
-                  >
-                    {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                  </button>
+                </div>
+                <div className="space-y-2">
+                  <Input
+                    type={showPassword ? 'text' : 'password'}
+                    placeholder="Confirm password"
+                    value={confirmPassword}
+                    onChange={(e) => setConfirmPassword(e.target.value)}
+                    required
+                    className="h-12"
+                  />
                 </div>
 
                 {error && (
-                  <div className="text-sm text-destructive text-center">
-                    {error}
-                  </div>
+                  <div className="text-sm text-destructive text-center">{error}</div>
                 )}
 
-                <Button
-                  type="submit"
-                  className="w-full h-12 text-lg font-semibold shadow-primary"
-                  disabled={isLoading}
-                >
-                  {isLoading ? 'Signing In...' : 'Sign In'}
+                <Button type="submit" className="w-full h-12 text-lg font-semibold" disabled={isLoading}>
+                  {isLoading ? 'Creating Account...' : 'Create Account'}
                 </Button>
               </form>
-
               <div className="text-center text-sm text-muted-foreground">
-                Don\'t have an account?{' '}
-                <Link to="/signup" className="text-primary underline">Create one</Link>
-                <br />
-                <Link to="/admin-login" className="text-primary underline">Authority Login</Link>
+                Already have an account?{' '}
+                <Link to="/login" className="text-primary underline">Sign in</Link>
               </div>
             </CardContent>
           </Card>
@@ -125,3 +122,5 @@ export default function Login() {
     </div>
   );
 }
+
+
