@@ -6,7 +6,6 @@ import { Input } from '../components/ui/input';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../components/ui/card';
 import { Badge } from '../components/ui/badge';
 import { Eye, EyeOff, Shield, Users } from 'lucide-react';
-import heroImage from '../assets/hero-image.jpg';
 
 export default function Login() {
   const [email, setEmail] = useState('');
@@ -55,25 +54,21 @@ export default function Login() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-primary-light via-background to-secondary-light">
+    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-blue-900 to-indigo-900">
       {/* Hero Section */}
       <div className="relative overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-hero opacity-90"></div>
-        <div className="relative z-10 px-4 py-12 sm:px-6 lg:px-8">
+        <div className="absolute inset-0 bg-gradient-to-r from-blue-600/20 to-purple-600/20"></div>
+        <div className="relative z-10 px-4 py-16 sm:px-6 lg:px-8">
           <div className="mx-auto max-w-4xl text-center">
-            <h1 className="text-4xl font-bold tracking-tight text-white sm:text-6xl">
+            <h1 className="text-5xl font-bold tracking-tight text-white sm:text-7xl mb-6">
               LOCALEYES
             </h1>
-            <p className="mt-6 text-xl leading-8 text-white/90">
+            <p className="text-2xl font-semibold text-white/95 mb-4">
+              SPOT IT. REPORT IT. FIX IT.
+            </p>
+            <p className="text-lg text-white/80 max-w-2xl mx-auto">
               Empowering communities to report local issues and connect with authorities for swift resolution.
             </p>
-            <div className="mt-8">
-              <img
-                src={heroImage}
-                alt="Citizens reporting community issues"
-                className="mx-auto rounded-2xl shadow-2xl max-w-2xl w-full"
-              />
-            </div>
           </div>
         </div>
       </div>
