@@ -6,54 +6,54 @@
 
 @layer base {
   :root {
-    /* Core Colors - HSL Format */
-    --background: 210 20% 98%;
-    --foreground: 215 25% 15%;
+    /* Core Colors - Darker High-Contrast Theme (Light mode baseline) */
+    --background: 220 15% 10%;
+    --foreground: 210 40% 96%;
 
-    --card: 0 0% 100%;
-    --card-foreground: 215 25% 15%;
+    --card: 220 15% 12%;
+    --card-foreground: 210 40% 96%;
 
-    --popover: 0 0% 100%;
-    --popover-foreground: 215 25% 15%;
+    --popover: 220 15% 12%;
+    --popover-foreground: 210 40% 96%;
 
-    /* Civic Blue - Trust & Authority */
-    --primary: 215 85% 45%;
+    /* Civic Blue - Vivid on Dark */
+    --primary: 215 100% 55%;
     --primary-foreground: 0 0% 100%;
-    --primary-hover: 215 85% 40%;
-    --primary-light: 215 85% 95%;
+    --primary-hover: 215 100% 48%;
+    --primary-light: 215 70% 20%;
 
-    /* Action Green - Positive Change */
-    --secondary: 145 65% 50%;
+    /* Action Green */
+    --secondary: 145 70% 45%;
     --secondary-foreground: 0 0% 100%;
-    --secondary-hover: 145 65% 45%;
-    --secondary-light: 145 65% 95%;
+    --secondary-hover: 145 70% 38%;
+    --secondary-light: 145 35% 22%;
 
-    /* Alert Orange - Urgent Issues */
-    --accent: 25 95% 60%;
+    /* Alert Orange */
+    --accent: 25 95% 52%;
     --accent-foreground: 0 0% 100%;
-    --accent-hover: 25 95% 55%;
-    --accent-light: 25 95% 95%;
+    --accent-hover: 25 95% 46%;
+    --accent-light: 25 50% 20%;
 
     /* Status Colors */
-    --success: 145 65% 50%;
+    --success: 145 70% 42%;
     --success-foreground: 0 0% 100%;
-    --warning: 45 95% 60%;
-    --warning-foreground: 0 0% 100%;
-    --destructive: 0 75% 55%;
+    --warning: 40 95% 50%;
+    --warning-foreground: 0 0% 12%;
+    --destructive: 0 85% 48%;
     --destructive-foreground: 0 0% 100%;
 
     /* Neutral System */
-    --muted: 210 15% 95%;
-    --muted-foreground: 215 15% 45%;
-    --border: 210 15% 90%;
-    --input: 210 15% 95%;
-    --ring: 215 85% 45%;
+    --muted: 220 10% 20%;
+    --muted-foreground: 220 10% 70%;
+    --border: 220 10% 25%;
+    --input: 220 10% 20%;
+    --ring: 215 100% 55%;
 
     /* Gradients */
-    --gradient-primary: linear-gradient(135deg, hsl(215 85% 45%), hsl(215 85% 55%));
-    --gradient-secondary: linear-gradient(135deg, hsl(145 65% 50%), hsl(145 65% 60%));
-    --gradient-accent: linear-gradient(135deg, hsl(25 95% 60%), hsl(25 95% 70%));
-    --gradient-hero: linear-gradient(135deg, hsl(215 85% 45%) 0%, hsl(145 65% 50%) 100%);
+    --gradient-primary: linear-gradient(135deg, hsl(215 100% 55%), hsl(215 100% 48%));
+    --gradient-secondary: linear-gradient(135deg, hsl(145 70% 45%), hsl(145 70% 50%));
+    --gradient-accent: linear-gradient(135deg, hsl(25 95% 52%), hsl(25 95% 58%));
+    --gradient-hero: linear-gradient(135deg, hsl(215 100% 55%) 0%, hsl(145 70% 45%) 100%);
     --gradient-card: linear-gradient(145deg, hsl(0 0% 100%) 0%, hsl(210 20% 98%) 100%);
 
     /* Shadows */

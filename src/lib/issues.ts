@@ -61,6 +61,7 @@ const MOCK_ISSUES: Issue[] = [
 class IssuesService {
   private storageKey = 'localeyes_issues';
   private upvotesKey = 'localeyes_upvotes';
+  private downvotesKey = 'localeyes_downvotes';
 
   getIssues(): Issue[] {
     try {
@@ -71,7 +72,8 @@ class IssuesService {
       return issues.map((issue: any) => ({
         ...issue,
         createdAt: new Date(issue.createdAt),
-        updatedAt: new Date(issue.updatedAt)
+        updatedAt: new Date(issue.updatedAt),
+        downvotes: typeof issue.downvotes === 'number' ? issue.downvotes : 0
       }));
     } catch {
       return MOCK_ISSUES;
@@ -99,6 +101,15 @@ class IssuesService {
     }
   }
 
+  getUserDownvotes(userId: string): Set<string> {
+    try {
+      const stored = localStorage.getItem(`${this.downvotesKey}_${userId}`);
+      return new Set(stored ? JSON.parse(stored) : []);
+    } catch {
+      return new Set();
+    }
+  }
+
   createIssue(userId: string, userEmail: string, data: CreateIssueData): Issue {
     const issues = this.getIssues();
     
@@ -106,7 +117,10 @@ class IssuesService {
       id: Date.now().toString(),
       ...data,
       status: 'Open',
+      reports: 0,
+      abuseReporters: [],
       upvotes: 0,
+      downvotes: 0,
       reporterId: userId,
       reporterEmail: userEmail,
       createdAt: new Date(),
@@ -122,9 +136,17 @@ class IssuesService {
   upvoteIssue(issueId: string, userId: string): boolean {
     const issues = this.getIssues();
     const userUpvotes = this.getUserUpvotes(userId);
+    const userDownvotes = this.getUserDownvotes(userId);
     
     if (userUpvotes.has(issueId)) {
-      return false; // Already upvoted
+      // Toggle off (unvote)
+      const issueIndex = issues.findIndex(issue => issue.id === issueId);
+      if (issueIndex === -1) return false;
+      issues[issueIndex].upvotes = Math.max(0, issues[issueIndex].upvotes - 1);
+      userUpvotes.delete(issueId);
+      this.saveIssues(issues);
+      this.saveUserUpvotes(userId, userUpvotes);
+      return true;
     }
 
     const issueIndex = issues.findIndex(issue => issue.id === issueId);
@@ -132,6 +154,12 @@ class IssuesService {
       return false;
     }
 
+    // If previously downvoted, remove the downvote first
+    if (userDownvotes.has(issueId)) {
+      issues[issueIndex].downvotes = Math.max(0, issues[issueIndex].downvotes - 1);
+      userDownvotes.delete(issueId);
+      this.saveUserDownvotes(userId, userDownvotes);
+    }
     issues[issueIndex].upvotes += 1;
     userUpvotes.add(issueId);
 
@@ -139,6 +167,63 @@ class IssuesService {
     this.saveUserUpvotes(userId, userUpvotes);
     
     return true;
+  }
+
+  downvoteIssue(issueId: string, userId: string): boolean {
+    const issues = this.getIssues();
+    const userDownvotes = this.getUserDownvotes(userId);
+    const userUpvotes = this.getUserUpvotes(userId);
+    
+    if (userDownvotes.has(issueId)) {
+      // Toggle off (remove downvote)
+      const issueIndex = issues.findIndex(issue => issue.id === issueId);
+      if (issueIndex === -1) return false;
+      issues[issueIndex].downvotes = Math.max(0, issues[issueIndex].downvotes - 1);
+      userDownvotes.delete(issueId);
+      this.saveIssues(issues);
+      this.saveUserDownvotes(userId, userDownvotes);
+      return true;
+    }
+    
+    const issueIndex = issues.findIndex(issue => issue.id === issueId);
+    if (issueIndex === -1) {
+      return false;
+    }
+    
+    // Remove upvote if present (downvote cancels out upvote)
+    if (userUpvotes.has(issueId)) {
+      issues[issueIndex].upvotes = Math.max(0, issues[issueIndex].upvotes - 1);
+      userUpvotes.delete(issueId);
+      this.saveUserUpvotes(userId, userUpvotes);
+    }
+    
+    // Add downvote (this decreases the net score by 1)
+    issues[issueIndex].downvotes += 1;
+    userDownvotes.add(issueId);
+    this.saveIssues(issues);
+    this.saveUserDownvotes(userId, userDownvotes);
+    return true;
+  }
+
+  reportIssueAbuse(issueId: string, reporterUserId: string, threshold = 3): 'reported' | 'already' | 'deleted' | 'not_found' {
+    const issues = this.getIssues();
+    const idx = issues.findIndex(i => i.id === issueId);
+    if (idx === -1) return 'not_found';
+    const issue = issues[idx];
+    const reporters = new Set(issue.abuseReporters || []);
+    if (reporters.has(reporterUserId)) return 'already';
+    reporters.add(reporterUserId);
+    issue.abuseReporters = Array.from(reporters);
+    issue.reports = (issue.reports || 0) + 1;
+    if (issue.reports >= threshold) {
+      // Delete issue automatically
+      issues.splice(idx, 1);
+      this.saveIssues(issues);
+      return 'deleted';
+    }
+    issues[idx] = { ...issue, updatedAt: new Date() };
+    this.saveIssues(issues);
+    return 'reported';
   }
 
   updateIssueStatus(issueId: string, status: Issue['status']): boolean {
@@ -162,6 +247,10 @@ class IssuesService {
 
   private saveUserUpvotes(userId: string, upvotes: Set<string>): void {
     localStorage.setItem(`${this.upvotesKey}_${userId}`, JSON.stringify([...upvotes]));
+  }
+
+  private saveUserDownvotes(userId: string, downvotes: Set<string>): void {
+    localStorage.setItem(`${this.downvotesKey}_${userId}`, JSON.stringify([...downvotes]));
   }
 }
 

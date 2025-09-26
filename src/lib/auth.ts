@@ -54,6 +54,26 @@ class AuthService {
         department: 'KSEB',
         name: 'KSEB Authority'
       }
+    },
+    'waste@kerala.localeyes.com': {
+      password: 'authority123',
+      user: {
+        id: '5',
+        email: 'waste@kerala.localeyes.com',
+        role: 'authority',
+        department: 'Waste Management',
+        name: 'Waste Management Authority'
+      }
+    },
+    'other@kerala.localeyes.com': {
+      password: 'authority123',
+      user: {
+        id: '6',
+        email: 'other@kerala.localeyes.com',
+        role: 'authority',
+        department: 'Other',
+        name: 'Other Department Authority'
+      }
     }
   };
 

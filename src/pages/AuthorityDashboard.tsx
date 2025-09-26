@@ -170,7 +170,7 @@ export default function AuthorityDashboard() {
           <div className="grid gap-4">
             {issues.length > 0 ? (
               issues.map((issue) => (
-                <Card key={issue.id} className="hover:shadow-md transition-shadow">
+                <Card key={issue.id} className="hover:shadow-md transition-shadow cursor-pointer" onClick={() => setSelectedIssue(issue)}>
                   <CardContent className="p-6">
                     <div className="flex items-start gap-4">
                       {/* Priority Score */}
@@ -196,6 +196,20 @@ export default function AuthorityDashboard() {
                         <p className="text-muted-foreground mb-4">
                           {issue.description}
                         </p>
+
+                        {issue.images && issue.images.length > 0 && (
+                          <div className="grid grid-cols-3 sm:grid-cols-4 gap-2 mb-4">
+                            {issue.images.map((img, idx) => (
+                              <div key={idx} className="relative border rounded overflow-hidden">
+                                <img
+                                  src={img}
+                                  alt={`Issue image ${idx + 1}`}
+                                  className="w-full h-24 object-cover"
+                                />
+                              </div>
+                            ))}
+                          </div>
+                        )}
                         
                         <div className="flex items-center gap-4 text-sm text-muted-foreground mb-4">
                           <div className="flex items-center gap-1">

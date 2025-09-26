@@ -36,14 +36,22 @@ export default function Login() {
     }
   };
 
-  const fillDemoCredentials = (type: 'citizen' | 'authority') => {
+  const fillDemoCredentials = (type: 'citizen' | 'authority', department?: 'PWD' | 'Water' | 'KSEB' | 'Waste Management' | 'Other') => {
     if (type === 'citizen') {
       setEmail('citizen@example.com');
       setPassword('password123');
-    } else {
-      setEmail('pwd@kseb.localeyes.com');
-      setPassword('authority123');
+      return;
     }
+    const emailByDept: Record<'PWD' | 'Water' | 'KSEB' | 'Waste Management' | 'Other', string> = {
+      PWD: 'pwd@kseb.localeyes.com',
+      Water: 'water@kerala.localeyes.com',
+      KSEB: 'kseb@kerala.localeyes.com',
+      'Waste Management': 'waste@kerala.localeyes.com',
+      'Other': 'other@kerala.localeyes.com',
+    };
+    const selectedEmail = department ? emailByDept[department] : emailByDept.PWD;
+    setEmail(selectedEmail);
+    setPassword('authority123');
   };
 
   return (
@@ -147,17 +155,73 @@ export default function Login() {
                     <Badge variant="secondary" className="text-xs">Demo User</Badge>
                   </div>
                 </Button>
+              </div>
 
+              <div className="grid grid-cols-3 gap-3">
                 <Button
                   type="button"
                   variant="outline"
-                  onClick={() => fillDemoCredentials('authority')}
+                  onClick={() => fillDemoCredentials('authority', 'PWD')}
                   className="h-auto p-3 flex flex-col items-center gap-2"
                 >
                   <Shield className="h-5 w-5 text-secondary" />
                   <div>
                     <div className="font-medium">Authority</div>
-                    <Badge variant="secondary" className="text-xs">PWD Demo</Badge>
+                    <Badge variant="secondary" className="text-xs">PWD</Badge>
+                  </div>
+                </Button>
+
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => fillDemoCredentials('authority', 'Water')}
+                  className="h-auto p-3 flex flex-col items-center gap-2"
+                >
+                  <Shield className="h-5 w-5 text-secondary" />
+                  <div>
+                    <div className="font-medium">Authority</div>
+                    <Badge variant="secondary" className="text-xs">Water</Badge>
+                  </div>
+                </Button>
+
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => fillDemoCredentials('authority', 'KSEB')}
+                  className="h-auto p-3 flex flex-col items-center gap-2"
+                >
+                  <Shield className="h-5 w-5 text-secondary" />
+                  <div>
+                    <div className="font-medium">Authority</div>
+                    <Badge variant="secondary" className="text-xs">KSEB</Badge>
+                  </div>
+                </Button>
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => fillDemoCredentials('authority', 'Waste Management')}
+                  className="h-auto p-3 flex flex-col items-center gap-2"
+                >
+                  <Shield className="h-5 w-5 text-secondary" />
+                  <div>
+                    <div className="font-medium">Authority</div>
+                    <Badge variant="secondary" className="text-xs">Waste Mgmt</Badge>
+                  </div>
+                </Button>
+
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => fillDemoCredentials('authority', 'Other')}
+                  className="h-auto p-3 flex flex-col items-center gap-2"
+                >
+                  <Shield className="h-5 w-5 text-secondary" />
+                  <div>
+                    <div className="font-medium">Authority</div>
+                    <Badge variant="secondary" className="text-xs">Other</Badge>
                   </div>
                 </Button>
               </div>

@@ -10,7 +10,7 @@ import { Textarea } from '../components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../components/ui/select';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '../components/ui/dialog';
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle, SheetTrigger } from '../components/ui/sheet';
-import { ArrowUp, MapPin, Plus, User, LogOut, Clock, Calendar } from 'lucide-react';
+import { ArrowUp, ThumbsDown, MapPin, Plus, User, LogOut, Clock, Calendar, X } from 'lucide-react';
 import { toast } from '../hooks/use-toast';
 
 export default function UserDashboard() {
@@ -37,11 +37,13 @@ export default function UserDashboard() {
     const allIssues = issuesService.getIssues();
     const userIssues = issuesService.getIssuesByUser(user.id);
     const upvotes = issuesService.getUserUpvotes(user.id);
+    const downvotes = issuesService.getUserDownvotes(user.id);
     
     // Add upvote status to issues
     const issuesWithUpvoteStatus = allIssues.map(issue => ({
       ...issue,
-      hasUserUpvoted: upvotes.has(issue.id)
+      hasUserUpvoted: upvotes.has(issue.id),
+      hasUserDownvoted: downvotes.has(issue.id)
     }));
     
     setIssues(issuesWithUpvoteStatus.sort((a, b) => b.upvotes - a.upvotes));
@@ -56,8 +58,20 @@ export default function UserDashboard() {
     if (success) {
       loadIssues();
       toast({
-        title: "Issue upvoted!",
-        description: "Your vote helps prioritize this issue."
+        title: userUpvotes.has(issueId) ? "Vote removed" : "Issue upvoted!",
+        description: userUpvotes.has(issueId) ? "You can vote again later." : "Your vote helps prioritize this issue."
+      });
+    }
+  };
+
+  const handleDownvote = async (issueId: string) => {
+    if (!user) return;
+    const success = issuesService.downvoteIssue(issueId, user.id);
+    if (success) {
+      loadIssues();
+      toast({
+        title: "Feedback recorded",
+        description: "Your downvote has been applied.",
       });
     }
   };
@@ -127,6 +141,37 @@ export default function UserDashboard() {
     }
   };
 
+  const convertFileToBase64 = (file: File): Promise<string> => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(reader.result as string);
+      reader.onerror = reject;
+      reader.readAsDataURL(file);
+    });
+  };
+
+  const handleImagesSelected = async (files: FileList | null) => {
+    if (!files || files.length === 0) return;
+    const imagesArray = Array.from(files);
+    try {
+      const base64Images = await Promise.all(imagesArray.map(convertFileToBase64));
+      setReportForm(prev => ({ ...prev, images: [...prev.images, ...base64Images] }));
+    } catch {
+      toast({
+        title: "Failed to add image(s)",
+        description: "Please try different images or a smaller size.",
+        variant: "destructive"
+      });
+    }
+  };
+
+  const handleRemoveImage = (index: number) => {
+    setReportForm(prev => ({
+      ...prev,
+      images: prev.images.filter((_, i) => i !== index)
+    }));
+  };
+
   const getStatusColor = (status: Issue['status']) => {
     switch (status) {
       case 'Open':
@@ -162,40 +207,58 @@ export default function UserDashboard() {
                 <SheetTrigger asChild>
                   <Button variant="outline" size="sm">
                     <User className="h-4 w-4 mr-2" />
-                    My Issues ({myIssues.length})
+                    Profile
                   </Button>
                 </SheetTrigger>
                 <SheetContent>
                   <SheetHeader>
-                    <SheetTitle>My Reported Issues</SheetTitle>
+                    <SheetTitle>My Profile</SheetTitle>
                     <SheetDescription>
-                      Track the status of issues you've reported
+                      Your credibility and reported issues
                     </SheetDescription>
                   </SheetHeader>
-                  <div className="mt-6 space-y-4">
-                    {myIssues.length > 0 ? (
-                      myIssues.map((issue) => (
-                        <Card key={issue.id} className="text-sm">
-                          <CardContent className="p-4">
-                            <div className="flex items-start justify-between gap-2">
-                              <div className="flex-1">
-                                <h4 className="font-medium line-clamp-2">{issue.title}</h4>
-                                <p className="text-muted-foreground mt-1">
-                                  {issue.department} • {formatDate(issue.createdAt)}
-                                </p>
+                  <div className="mt-4 space-y-4">
+                    <Card>
+                      <CardContent className="p-4">
+                        <div className="flex items-center justify-between">
+                          <div>
+                            <div className="text-sm text-muted-foreground">Total Upvotes on Your Issues</div>
+                            <div className="text-2xl font-bold">{myIssues.reduce((sum, i) => sum + i.upvotes, 0)}</div>
+                            <div className="text-sm text-muted-foreground mt-1">Total Downvotes</div>
+                            <div className="text-xl font-semibold">{myIssues.reduce((sum, i) => sum + (i.downvotes ?? 0), 0)}</div>
+                            <div className="text-sm text-muted-foreground mt-1">Credibility (Upvotes - Downvotes)</div>
+                            <div className="text-xl font-semibold">{myIssues.reduce((sum, i) => sum + i.upvotes - (i.downvotes ?? 0), 0)}</div>
+                          </div>
+                          <Badge>Credibility</Badge>
+                        </div>
+                      </CardContent>
+                    </Card>
+                    <div className="space-y-4">
+                      <h4 className="font-medium">My Reported Issues ({myIssues.length})</h4>
+                      {myIssues.length > 0 ? (
+                        myIssues.map((issue) => (
+                          <Card key={issue.id} className="text-sm">
+                            <CardContent className="p-4">
+                              <div className="flex items-start justify-between gap-2">
+                                <div className="flex-1">
+                                  <h4 className="font-medium line-clamp-2">{issue.title}</h4>
+                                  <p className="text-muted-foreground mt-1">
+                                    {issue.department} • {formatDate(issue.createdAt)}
+                                  </p>
+                                </div>
+                                <Badge className={getStatusColor(issue.status)}>
+                                  {issue.status}
+                                </Badge>
                               </div>
-                              <Badge className={getStatusColor(issue.status)}>
-                                {issue.status}
-                              </Badge>
-                            </div>
-                          </CardContent>
-                        </Card>
-                      ))
-                    ) : (
-                      <p className="text-center text-muted-foreground py-8">
-                        You haven't reported any issues yet
-                      </p>
-                    )}
+                            </CardContent>
+                          </Card>
+                        ))
+                      ) : (
+                        <p className="text-center text-muted-foreground py-8">
+                          You haven't reported any issues yet
+                        </p>
+                      )}
+                    </div>
                   </div>
                 </SheetContent>
               </Sheet>
@@ -234,7 +297,6 @@ export default function UserDashboard() {
                           variant={issue.hasUserUpvoted ? "default" : "outline"}
                           size="sm"
                           onClick={() => handleUpvote(issue.id)}
-                          disabled={issue.hasUserUpvoted}
                           className="h-auto p-2"
                         >
                           <ArrowUp className="h-4 w-4" />
@@ -266,6 +328,31 @@ export default function UserDashboard() {
                           <div className="flex items-center gap-1">
                             <Calendar className="h-3 w-3" />
                             <span>{formatDate(issue.createdAt)}</span>
+                          </div>
+                          <div className="ml-auto flex items-center gap-3">
+                            <div className="flex items-center gap-1">
+                              <Button
+                                variant={issue.hasUserDownvoted ? "default" : "outline"}
+                                size="sm"
+                                onClick={() => handleDownvote(issue.id)}
+                                className="h-8 w-8 p-1"
+                              >
+                                <ThumbsDown className="h-4 w-4" />
+                              </Button>
+                              <span className="font-medium text-sm text-red-600">{issue.downvotes ?? 0}</span>
+                            </div>
+                            <Button variant="ghost" size="sm" onClick={() => {
+                              if (!user) return;
+                              const result = issuesService.reportIssueAbuse(issue.id, user.id);
+                              if (result === 'reported') {
+                                toast({ title: 'Reported', description: 'Thank you for keeping the platform safe.' });
+                              } else if (result === 'already') {
+                                toast({ title: 'Already reported', description: 'You have already reported this issue.' });
+                              } else if (result === 'deleted') {
+                                loadIssues();
+                                toast({ title: 'Issue removed', description: 'This issue was removed due to multiple reports.' });
+                              }
+                            }}>Report</Button>
                           </div>
                         </div>
                       </div>
@@ -335,6 +422,34 @@ export default function UserDashboard() {
                 rows={4}
               />
             </div>
+
+          <div className="space-y-2">
+            <label className="text-sm font-medium">Photos</label>
+            <Input
+              type="file"
+              accept="image/*"
+              multiple
+              onChange={(e) => handleImagesSelected(e.target.files)}
+            />
+            {reportForm.images.length > 0 && (
+              <div className="grid grid-cols-4 gap-2 pt-2">
+                {reportForm.images.map((img, idx) => (
+                  <div key={idx} className="relative group border rounded overflow-hidden">
+                    <img src={img} alt={`upload-${idx}`} className="w-full h-20 object-cover" />
+                    <button
+                      type="button"
+                      onClick={() => handleRemoveImage(idx)}
+                      className="absolute top-1 right-1 inline-flex items-center justify-center h-6 w-6 rounded-full bg-background/80 border opacity-0 group-hover:opacity-100 transition"
+                      aria-label="Remove image"
+                    >
+                      <X className="h-3 w-3" />
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
+            <p className="text-xs text-muted-foreground">You can attach multiple photos to better illustrate the issue.</p>
+          </div>
           </div>
           
           <div className="flex justify-end gap-3">
