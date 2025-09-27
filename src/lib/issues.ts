@@ -1,4 +1,5 @@
 import { Issue, CreateIssueData } from '../types/issue';
+import { gmailSMTPEmailService as emailService, IssueResolutionEmailData } from './frontendEmail';
 
 // Mock data for demonstration
 const MOCK_ISSUES: Issue[] = [
@@ -239,11 +240,48 @@ class IssuesService {
       return false;
     }
 
+    const previousStatus = issues[issueIndex].status;
     issues[issueIndex].status = status;
     issues[issueIndex].updatedAt = new Date();
     
     this.saveIssues(issues);
+
+    // Send email notification if issue was resolved
+    if (status === 'Resolved' && previousStatus !== 'Resolved') {
+      this.sendResolutionEmail(issues[issueIndex]);
+    }
+
     return true;
+  }
+
+  private async sendResolutionEmail(issue: Issue): Promise<void> {
+    try {
+      const emailData: IssueResolutionEmailData = {
+        reporterEmail: issue.reporterEmail,
+        reporterName: issue.reporterEmail.split('@')[0], // Extract name from email
+        issueTitle: issue.title,
+        issueDescription: issue.description,
+        issueLocation: issue.location.address || `${issue.location.latitude}, ${issue.location.longitude}`,
+        department: issue.department,
+        resolvedDate: new Intl.DateTimeFormat('en-US', {
+          year: 'numeric',
+          month: 'long',
+          day: 'numeric',
+          hour: '2-digit',
+          minute: '2-digit'
+        }).format(issue.updatedAt)
+      };
+
+      const emailSent = await emailService.sendIssueResolutionEmail(emailData);
+      
+      if (emailSent) {
+        console.log(`✅ Resolution email sent to ${issue.reporterEmail} for issue: ${issue.title}`);
+      } else {
+        console.error(`❌ Failed to send resolution email to ${issue.reporterEmail} for issue: ${issue.title}`);
+      }
+    } catch (error) {
+      console.error('Error sending resolution email:', error);
+    }
   }
 
   private saveIssues(issues: Issue[]): void {

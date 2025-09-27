@@ -35,12 +35,14 @@ export default function AuthorityDashboard() {
       setSelectedIssue(null);
       
       const statusMessage = newStatus === 'Resolved' 
-        ? 'Issue marked as resolved!'
+        ? 'Issue marked as resolved! Email notification sent to reporter.'
         : `Issue status updated to ${newStatus}`;
         
       toast({
         title: statusMessage,
-        description: "Citizens will be notified of this update."
+        description: newStatus === 'Resolved' 
+          ? "The reporter has been notified via email about the resolution."
+          : "Citizens will be notified of this update."
       });
     }
   };
